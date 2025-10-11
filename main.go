@@ -84,9 +84,9 @@ func (kv *KVStore) loadFromLog(logPath string) error {
 func (kv *KVStore) Put(key, value string) {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
-	kv.store[key] = value
 	keyVal := fmt.Sprintf("%s %s\n", key, value)
 	writeToLog(kv.logPath, "PUT", keyVal)
+	kv.store[key] = value
 }
 
 func (kv *KVStore) putReplay(key, value string) {
@@ -112,8 +112,10 @@ func (kv *KVStore) Delete(key string) error {
 	if !exists {
 		return errors.New("key not found")
 	}
-	delete(kv.store, key)
+	// We must write before we actually do it
 	writeToLog(kv.logPath, "DELETE", key)
+	delete(kv.store, key)
+
 	return nil
 }
 
